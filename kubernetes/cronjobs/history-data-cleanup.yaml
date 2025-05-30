@@ -1,0 +1,38 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: history-data-cleanup
+  labels:
+    app: device-manager-api
+    component: maintenance
+spec:
+  # Run daily at 1:00 AM
+  schedule: "0 1 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: history-cleanup
+              image: curlimages/curl:latest
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  curl -X POST "http://${API_SERVICE_HOST}:${API_SERVICE_PORT}/api/maintenance/cleanup-history" \
+                    -H "X-API-Token: ${API_TOKEN}" \
+                    -H "Content-Type: application/json" \
+                    -d '{"retention_days": ${RETENTION_DAYS}}'
+              env:
+                - name: API_SERVICE_HOST
+                  value: "{{ .Values.apiService.host }}"
+                - name: API_SERVICE_PORT
+                  value: "{{ .Values.apiService.port }}"
+                - name: RETENTION_DAYS
+                  value: "{{ .Values.retentionDays }}"
+                - name: API_TOKEN
+                  value: "{{ .Values.apiToken }}"
+          restartPolicy: OnFailure

@@ -1,0 +1,52 @@
+# Default values for device-manager-api
+# This is a YAML-formatted file
+
+replicaCount: 1
+
+image:
+  repository: device-manager-api
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+database:
+  host: postgres-service
+  name: device_manager_db
+  port: 5432
+
+service:
+  type: ClusterIP
+  port: 8000
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 256Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 80
+
+# CronJob settings
+cronJobs:
+  deviceStatusChecker:
+    enabled: true
+    schedule: "*/5 * * * *" # Run every 5 minutes
+    concurrencyPolicy: Forbid
+    successfulJobsHistoryLimit: 3
+    failedJobsHistoryLimit: 3
+    resources:
+      limits:
+        cpu: 200m
+        memory: 256Mi
+      requests:
+        cpu: 100m
+        memory: 128Mi
