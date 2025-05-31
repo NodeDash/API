@@ -48,7 +48,7 @@ class Settings(BaseSettings):
     REDIS_HOST: str = os.getenv("REDIS_HOST", "valkey")
     REDIS_DB: int = int(os.getenv("REDIS_DB", "0"))
 
-    REDIS_PASSWORD: Optional[str] = os.getenv("REDIS_PASSWORD")
+    REDIS_PASSWORD: Optional[str] = os.getenv("REDIS_PASSWORD", "")
 
     # Email settings
     EMAIL_MODE: str = os.getenv("EMAIL_MODE", "SMTP")

@@ -40,6 +40,10 @@ class RedisClient:
         redis_db = getattr(settings, "REDIS_DB", 0)
         redis_password = getattr(settings, "REDIS_PASSWORD", None)
 
+        # if redis password is "", set it to None
+        if redis_password == "":
+            redis_password = None
+
         self.redis = redis.Redis(
             host=redis_host,
             port=redis_port,
@@ -146,7 +150,11 @@ class RedisClient:
 
     # MFA Related Methods
     def store_mfa_session(
-        self, user_id: int, email: str, remember_me: bool = False, ttl_seconds: int = 300
+        self,
+        user_id: int,
+        email: str,
+        remember_me: bool = False,
+        ttl_seconds: int = 300,
     ) -> str:
         """
         Create and store a session ID for MFA verification.
@@ -219,39 +227,43 @@ class RedisClient:
             return False
 
     # Email verification methods
-    def generate_email_verification_code(self, email: str, ttl_seconds: int = 86400) -> Optional[str]:
+    def generate_email_verification_code(
+        self, email: str, ttl_seconds: int = 86400
+    ) -> Optional[str]:
         """
         Generate and store a verification code for email verification.
-        
+
         Args:
             email: User's email address
             ttl_seconds: Time-to-live in seconds for the verification code (default: 24 hours)
-            
+
         Returns:
             str: The generated verification code, or None if there was an error
         """
         try:
             # Generate a random 6-digit code
             code = "".join(secrets.choice("0123456789") for _ in range(6))
-            
+
             # Store the code with the email as key
             key = f"{EMAIL_VERIFICATION_PREFIX}{email}"
             self.redis.setex(key, ttl_seconds, code)
-            
-            logger.info(f"Generated email verification code for {email} with TTL of {ttl_seconds}s")
+
+            logger.info(
+                f"Generated email verification code for {email} with TTL of {ttl_seconds}s"
+            )
             return code
         except redis.exceptions.RedisError as e:
             logger.error(f"Error generating email verification code for {email}: {e}")
             return None
-            
+
     def verify_email_code(self, email: str, code: str) -> bool:
         """
         Verify if the provided email verification code matches the stored code.
-        
+
         Args:
             email: User's email address
             code: Verification code to validate
-            
+
         Returns:
             bool: True if the code is valid, False otherwise
         """
