@@ -1,10 +1,10 @@
-# Device Manager API
+# NodeDash API
 
 A comprehensive API for managing IoT devices, integrations, and data flows. Built with FastAPI and PostgreSQL.
 
 ## Overview
 
-The Device Manager API provides a complete backend solution for IoT device management with support for:
+The NodeDash API provides a complete backend solution for IoT device management with support for:
 
 - Device registration and monitoring
 - Device grouping through labels

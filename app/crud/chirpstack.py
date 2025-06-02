@@ -626,10 +626,10 @@ def run_setup(
     if not application_id:
         # Create a new application
         try:
-            print("ChirpStack setup: Creating new application 'Device Manager'")
+            print("ChirpStack setup: Creating new application 'NodeDash'")
             application_data = ApplicationCreate(
-                name="Device Manager",
-                description="Device Manager Application",
+                name="NodeDash",
+                description="NodeDash Application",
                 tenantId=tenantId,
             )
             application = create_application(application_data, client)
@@ -786,7 +786,7 @@ def setup_device_profiles(client, json_config):
     for region, config in regions.items():
         # Set up standard profile (Class A)
         standard_profile_id = json_config.get(config["standard_key"])
-        standard_profile_name = f"Device Manager - {region}"
+        standard_profile_name = f"NodeDash - {region}"
 
         print(f"Setup: Processing standard profile for {region}")
         print(f"Setup: Config has profile ID: {standard_profile_id}")
@@ -827,7 +827,7 @@ def setup_device_profiles(client, json_config):
 
         # Set up Class C profile
         class_c_profile_id = json_config.get(config["class_c_key"])
-        class_c_profile_name = f"Device Manager - {region} - Class C"
+        class_c_profile_name = f"NodeDash - {region} - Class C"
 
         print(f"Setup: Processing Class C profile for {region}")
         print(f"Setup: Config has Class C profile ID: {class_c_profile_id}")

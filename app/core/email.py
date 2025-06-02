@@ -74,7 +74,7 @@ def send_password_reset_email(to_email: str, verification_code: str) -> bool:
     If you didn't request this, you can safely ignore this email.
     
     Best regards,
-    The Device Manager Team
+    The NodeDash Team
     """
 
     html_body = f"""
@@ -89,7 +89,7 @@ def send_password_reset_email(to_email: str, verification_code: str) -> bool:
         <p>This code will expire in 15 minutes.</p>
         <p><a href="{website_address}/reset-password">Click here</a> to reset your password or copy and paste this URL into your browser: {website_address}/reset-password</p>
         <p>If you didn't request this, you can safely ignore this email.</p>
-        <p>Best regards,<br>The Device Manager Team</p>
+        <p>Best regards,<br>The NodeDash Team</p>
       </body>
     </html>
     """
@@ -125,7 +125,7 @@ def send_email_verification_email(to_email: str, verification_code: str) -> bool
     If you didn't register for an account, you can safely ignore this email.
     
     Best regards,
-    The Device Manager Team
+    The NodeDash Team
     """
 
     html_body = f"""
@@ -140,7 +140,7 @@ def send_email_verification_email(to_email: str, verification_code: str) -> bool
         <p>This code will expire in 24 hours.</p>
         <p><a href="{website_address}/email-verify">Click here</a> to verify your email or copy and paste this URL into your browser: {website_address}/email-verify</p>
         <p>If you didn't register for an account, you can safely ignore this email.</p>
-        <p>Best regards,<br>The Device Manager Team</p>
+        <p>Best regards,<br>The NodeDash Team</p>
       </body>
     </html>
     """
