@@ -35,23 +35,16 @@ class RedisClient:
 
     def __init__(self):
         """Initialize Redis connection using settings."""
-        redis_host = getattr(settings, "REDIS_HOST", "valkey")
-        redis_port = getattr(settings, "REDIS_PORT", 6379)
-        redis_db = getattr(settings, "REDIS_DB", 0)
-        redis_password = getattr(settings, "REDIS_PASSWORD", None)
-
-        # if redis password is "", set it to None
-        if redis_password == "":
-            redis_password = None
-
         self.redis = redis.Redis(
-            host=redis_host,
-            port=redis_port,
-            db=redis_db,
-            password=redis_password,
+            host=settings.REDIS_HOST,
+            port=settings.REDIS_PORT,
+            db=settings.REDIS_DB,
+            password=settings.REDIS_PASSWORD,
             decode_responses=True,
         )
-        logger.info(f"Redis client initialized: {redis_host}:{redis_port}/db{redis_db}")
+        logger.info(
+            f"Redis client initialized: {settings.REDIS_HOST}:{settings.REDIS_PORT}/db{settings.REDIS_DB}"
+        )
 
     def set_device_online(self, device_id: int, ttl_seconds: int) -> bool:
         """

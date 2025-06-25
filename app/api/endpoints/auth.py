@@ -1,7 +1,7 @@
 from datetime import timedelta
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, status, Body
+from fastapi import APIRouter, Depends, HTTPException, status, Body, Form
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 import pyotp
@@ -37,6 +37,28 @@ from app.schemas.user import User as UserSchema, UserCreate, Token
 from app.redis.client import RedisClient
 
 router = APIRouter()
+
+
+class OAuth2PasswordRequestFormWithRememberMe(OAuth2PasswordRequestForm):
+    def __init__(
+        self,
+        grant_type: str = Form(default=None, regex="password"),
+        username: str = Form(),
+        password: str = Form(),
+        scope: str = Form(default=""),
+        client_id: Optional[str] = Form(default=None),
+        client_secret: Optional[str] = Form(default=None),
+        remember_me: Optional[str] = Form(default="false"),
+    ):
+        super().__init__(
+            grant_type=grant_type,
+            username=username,
+            password=password,
+            scope=scope,
+            client_id=client_id,
+            client_secret=client_secret,
+        )
+        self.remember_me = remember_me
 
 
 @router.post("/register", response_model=UserSchema)
@@ -106,17 +128,19 @@ def register(*, db: Session = Depends(get_db), user_in: UserCreate) -> Any:
 
 @router.post("/login", response_model=Dict[str, Any])
 def login(
-    db: Session = Depends(get_db), credentials: Dict[str, str] = Body(...)
+    db: Session = Depends(get_db),
+    form_data: OAuth2PasswordRequestFormWithRememberMe = Depends(),
 ) -> Any:
     """
     Authenticate a user and issue an access token.
 
     This endpoint validates user credentials and returns an authentication token
-    that can be used for subsequent API calls.
+    that can be used for subsequent API calls. Compatible with OAuth2 password flow
+    for Swagger UI authorization.
 
     Parameters:
     - **db**: Database session dependency
-    - **credentials**: Dictionary containing "email" and "password" keys
+    - **form_data**: OAuth2PasswordRequestForm containing username and password
 
     Returns:
     - Authentication token and user information:
@@ -126,6 +150,7 @@ def login(
         - requires_mfa: Boolean indicating if MFA verification is required
 
     Notes:
+    - Username field accepts either email or username
     - Failed login attempts may be rate-limited
     - Multi-factor authentication may be required depending on user settings
 
@@ -133,24 +158,28 @@ def login(
     - 401: If credentials are invalid or account is locked
     - 403: If email verification is required but not completed
     """
-    """
-    Get access token for user using JSON data.
-    Accepts either email or username as the identifier.
-    """
-    # check to see if this is email or username
-    username = credentials.get("username")
-    email = credentials.get("email")
-    password = credentials.get("password")
-    rememberMe = credentials.get("rememberMe", "0")
 
-    # Convert boolean rememberMe to string "1" if true
-    if isinstance(rememberMe, bool) and rememberMe:
-        rememberMe = "1"
+    print("Login attempt with form data:", form_data)
+    # Extract credentials from form data
+    username_or_email = form_data.username
+    password = form_data.password
+    remember_me = form_data.remember_me
 
-    if not (email or username) or not password:
+    # Determine if it's an email or username
+    email = username_or_email if "@" in username_or_email else None
+    username = username_or_email if "@" not in username_or_email else None
+
+    # Convert remember_me string to boolean
+    remember_me_bool = (
+        remember_me.lower() == "true"
+        if isinstance(remember_me, str)
+        else bool(remember_me)
+    )
+
+    if not username_or_email or not password:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail="Email/username and password are required",
+            detail="Username/email and password are required",
         )
 
     # Call authenticate with correct parameters
@@ -177,11 +206,6 @@ def login(
         # Store a temporary session for MFA verification
         redis_client = RedisClient.get_instance()
 
-        # Convert rememberMe to boolean if it's a string
-        remember_me_bool = (
-            rememberMe == "1" if isinstance(rememberMe, str) else bool(rememberMe)
-        )
-
         session_id = redis_client.store_mfa_session(
             user.id, user.email, remember_me=remember_me_bool
         )
@@ -189,7 +213,7 @@ def login(
         return {"mfa_required": True, "session_id": session_id, "email": user.email}
 
     # if remember me is true, set expiration to 30 days, otherwise use default
-    if rememberMe == "1":
+    if remember_me_bool:
         ACCESS_TOKEN_EXPIRE_MINUTES = settings.ACCESS_TOKEN_EXPIRE_MINUTES_REMEMBER_ME
     else:
         ACCESS_TOKEN_EXPIRE_MINUTES = settings.ACCESS_TOKEN_EXPIRE_MINUTES

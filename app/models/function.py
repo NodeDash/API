@@ -16,6 +16,7 @@ class Function(Base):
     status = Column(String, nullable=False, default="inactive")
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    owner_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    owner_id = Column(Integer, nullable=True)
     owner_type = Column(String, default=OwnerType.USER)
-    owner = relationship("User", foreign_keys=[owner_id])
+    # Note: owner_id references either users.id or teams.id depending on owner_type
+    # No foreign key constraint to support polymorphic ownership

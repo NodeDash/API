@@ -25,13 +25,13 @@ def get_integration(
     query = db.query(Integration).filter(Integration.id == integration_id)
 
     # Filter by owner if owner parameters are provided
-    if owner_id is not None and owner_type == OwnerType.USER:
-        query = query.filter(
-            Integration.owner_id == owner_id, Integration.owner_type == OwnerType.USER
-        )
-    elif team_id is not None:
+    if team_id is not None:
         query = query.filter(
             Integration.owner_id == team_id, Integration.owner_type == OwnerType.TEAM
+        )
+    elif owner_id is not None and owner_type == OwnerType.USER:
+        query = query.filter(
+            Integration.owner_id == owner_id, Integration.owner_type == OwnerType.USER
         )
 
     return query.first()
@@ -92,25 +92,10 @@ def get_integrations(
             Integration.owner_id == team_id, Integration.owner_type == OwnerType.TEAM
         )
     elif owner_id is not None and not owner_type:
-        # Get user's integrations and team integrations where user is a member
-        user_teams = db.query(Team).filter(Team.users.any(id=owner_id)).all()
-        team_ids = [team.id for team in user_teams]
-
-        # Union of user's integrations and team integrations
-        if team_ids:
-            query = query.filter(
-                or_(
-                    (Integration.owner_id == owner_id)
-                    & (Integration.owner_type == OwnerType.USER),
-                    (Integration.owner_id.in_(team_ids))
-                    & (Integration.owner_type == OwnerType.TEAM),
-                )
-            )
-        else:
-            query = query.filter(
-                Integration.owner_id == owner_id,
-                Integration.owner_type == OwnerType.USER,
-            )
+        query = query.filter(
+            Integration.owner_id == owner_id,
+            Integration.owner_type == OwnerType.USER,
+        )
 
     return query.offset(skip).limit(limit).all()
 
@@ -128,13 +113,25 @@ def create_integration(
     If owner_id is provided with owner_type=USER, assign user ownership
     If team_id is provided, assign team ownership
     """
+    from app.models.user import User
+
     db_integration = Integration(**integration.dict())
 
-    # Assign owner based on parameters
+    # Assign owner based on parameters and validate ownership
     if owner_id is not None and owner_type == OwnerType.USER:
+        # Validate user exists
+        user = db.query(User).filter(User.id == owner_id).first()
+        if not user:
+            raise ValueError(f"User with id {owner_id} does not exist")
+
         db_integration.owner_id = owner_id
         db_integration.owner_type = OwnerType.USER
     elif team_id is not None:
+        # Validate team exists
+        team = db.query(Team).filter(Team.id == team_id).first()
+        if not team:
+            raise ValueError(f"Team with id {team_id} does not exist")
+
         db_integration.owner_id = team_id
         db_integration.owner_type = OwnerType.TEAM
 

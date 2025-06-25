@@ -46,6 +46,7 @@ class Settings(BaseSettings):
         os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES_REMEMBER_ME", "43200")
     )
     REDIS_HOST: str = os.getenv("REDIS_HOST", "valkey")
+    REDIS_PORT: int = int(os.getenv("REDIS_PORT", "6379"))
     REDIS_DB: int = int(os.getenv("REDIS_DB", "0"))
 
     REDIS_PASSWORD: Optional[str] = os.getenv("REDIS_PASSWORD", "")

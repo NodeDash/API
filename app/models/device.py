@@ -38,15 +38,17 @@ class Device(Base):
     # Expected transmit time in minutes (from 1 minute to 24 hours)
     expected_transmit_time = Column(Integer, nullable=True)
     # Add owner fields
-    owner_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    owner_id = Column(Integer, nullable=True)
     owner_type = Column(String, default=OwnerType.USER)
+    # Note: owner_id references either users.id or teams.id depending on owner_type
+    # No foreign key constraint to support polymorphic ownership
     # Added new fields
     region = Column(Enum(Region), nullable=True)
     is_class_c = Column(Boolean, default=False)
 
     # Relationships
     labels = relationship("Label", secondary=device_label, back_populates="devices")
-    owner = relationship("User", foreign_keys=[owner_id])
+    # Note: owner relationship removed due to polymorphic ownership
 
 
 # The relationship with DeviceHistory needs to be defined after both classes

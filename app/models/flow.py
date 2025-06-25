@@ -16,11 +16,12 @@ class Flow(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     # Add owner fields
-    owner_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    owner_id = Column(Integer, nullable=True)
     owner_type = Column(String, default=OwnerType.USER)
+    # Note: owner_id references either users.id or teams.id depending on owner_type
+    # No foreign key constraint to support polymorphic ownership
 
     # Flow layout is stored separately
     layout = Column(JSON, nullable=True)
 
-    # Add relationship to owner
-    owner = relationship("User", foreign_keys=[owner_id])
+    # Note: owner relationship removed due to polymorphic ownership
