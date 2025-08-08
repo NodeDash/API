@@ -159,7 +159,6 @@ def login(
     - 403: If email verification is required but not completed
     """
 
-    print("Login attempt with form data:", form_data)
     # Extract credentials from form data
     username_or_email = form_data.username
     password = form_data.password

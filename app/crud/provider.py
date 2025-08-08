@@ -2,8 +2,8 @@ from typing import List, Optional, Dict, Any, Union
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
 
-from app.models.provider import Provider, ProviderType
-from app.models.enums import OwnerType
+from app.models.provider import Provider
+from app.models.enums import OwnerType, ProviderType
 from app.schemas.provider import ProviderCreate, ProviderUpdate
 from app.crud import chirpstack
 
@@ -82,18 +82,18 @@ def create_provider(db: Session, provider: ProviderCreate) -> Provider:
             detail="Provider already exists for this user/team with the same type.",
         )
 
-    # Ensure we use the correct enum value by using the enum itself
-    # This ensures the enum's string value (lowercase) is used rather than the name (uppercase)
     provider_data = provider.model_dump()
     db_provider = Provider(**provider_data)
 
-    # use the enum value directly for provider_type
+    # Assign provider_type explicitly if recognized
     if provider.provider_type == ProviderType.chirpstack:
         db_provider.provider_type = ProviderType.chirpstack
     elif provider.provider_type == ProviderType.email:
         db_provider.provider_type = ProviderType.email
     elif provider.provider_type == ProviderType.sms:
         db_provider.provider_type = ProviderType.sms
+    elif provider.provider_type == ProviderType.influxdb:
+        db_provider.provider_type = ProviderType.influxdb
     else:
         # If the provider type is not recognized, raise an error
         raise HTTPException(

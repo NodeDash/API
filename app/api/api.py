@@ -12,6 +12,7 @@ from app.api.endpoints import (
     teams,
     providers,
     maintenance,
+    storage,
 )
 
 api_router = APIRouter()
@@ -29,6 +30,7 @@ api_router.include_router(providers.router, prefix="/providers", tags=["Provider
 api_router.include_router(
     maintenance.router, prefix="/maintenance", tags=["Maintenance"]
 )
+api_router.include_router(storage.router, prefix="/storage", tags=["Storage"])
 
 api_router.include_router(search.router, prefix="/search", tags=["Search"])
 api_router.include_router(teams.router, prefix="/teams", tags=["Teams"])

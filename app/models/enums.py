@@ -60,6 +60,8 @@ class ProviderType(str, enum.Enum):
     chirpstack = "chirpstack"
     email = "email"
     sms = "sms"
+    # Storage providers
+    influxdb = "influxdb"
 
 
 class EmailMode(str, enum.Enum):

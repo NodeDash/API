@@ -1,8 +1,7 @@
 from datetime import datetime
 from typing import Dict, Optional, Any, List
 from pydantic import BaseModel, Field
-from app.models.provider import ProviderType
-from app.models.enums import OwnerType
+from app.models.enums import ProviderType, OwnerType
 
 
 # Shared properties

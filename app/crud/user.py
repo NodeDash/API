@@ -24,10 +24,8 @@ def authenticate(
 ) -> Optional[User]:
     # Check if the identifier is email or username by checking if username is not None
     if username is not None and username != "":
-        print(f"Authenticating with username: {username}")
         user = get_by_username(db, username=username)
     else:
-        print(f"Authenticating with email: {email}")
         user = get_by_email(db, email=email)
 
     if not user:
